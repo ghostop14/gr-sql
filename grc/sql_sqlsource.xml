@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<block>
+  <name>sqlsource</name>
+  <key>sql_sqlsource</key>
+  <category>[grsql]</category>
+  <import>import sql</import>
+  <make>sql.sqlsource($sqlstring,$type.datatype)</make>
+	<param>
+		<name>Data Type</name>
+		<key>type</key>
+		<type>enum</type>
+		<option>
+			<name>Complex</name>
+			<key>complex</key>
+			<opt>datatype:1</opt>
+			<opt>input:complex</opt>
+			<opt>output:complex</opt>
+		</option>
+		<option>
+			<name>Float</name>
+			<key>float</key>
+			<opt>datatype:2</opt>
+			<opt>input:float</opt>
+			<opt>output:float</opt>
+		</option>
+		<option>
+			<name>Int</name>
+			<key>int</key>
+			<opt>datatype:3</opt>
+			<opt>input:int</opt>
+			<opt>output:int</opt>
+		</option>
+		<option>
+			<name>Short</name>
+			<key>short</key>
+			<opt>datatype:4</opt>
+			<opt>input:short</opt>
+			<opt>output:short</opt>
+		</option>
+		<option>
+			<name>Byte</name>
+			<key>byte</key>
+			<opt>datatype:5</opt>
+			<opt>input:byte</opt>
+			<opt>output:byte</opt>
+		</option>
+	</param>
+
+	<param>
+		<name>grsql string</name>
+		<key>sqlstring</key>
+		<value></value>
+		<type>string</type>
+	</param>
+
+	<source>
+		<name>out</name>
+		<type>$type</type>
+	</source>
+	<doc>
+Provides a flowgraph interface to grsql.  The following is an example query against a saved file:
+
+select * FROM 'recording_593MHz_6.2MSPS.raw' ASDATATYPE complex samplerate 6.2M starttime 0.0 endtime 10.0
+	</doc>
+</block>
