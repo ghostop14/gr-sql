@@ -49,6 +49,10 @@ namespace gr {
 
       switch(igrcdatatype) {
       case DATATYPE_COMPLEX:
+      case DATATYPE_SIGNED8:
+      case DATATYPE_UNSIGNED8:
+    	  // Note that even though signed8/unsigned8 are byte inputs, they output complex.
+    	  // So output size is 8 / gr_complex.
     	  dsize = 8;
       break;
 
@@ -96,7 +100,15 @@ namespace gr {
     	curfileposition = 0;
     	endfileposition = 0;
 
-    	parsesql(true);
+    	if (grcdatatype > 0) {
+    		// Run from flowgraph, ignore SAVEAS
+        	parsesql(true);
+    	}
+    	else {
+    		// Run from command-line.  Test for SaveAs
+        	parsesql(false);
+    	}
+
 
     	// if we're in a flowgraph check that we match.
     	bool bDataError = false;
@@ -213,10 +225,13 @@ namespace gr {
 
     		long i=startpos;
     		long bytesremaining;
+    		long totalbytesread = 0; // used for debugging
 
     		// We're using a while here so we can dyamically adjust our step
     		// depending on if we're in bulk * mode or I/Q mode where we have
     		// to go 1 data set at a time to separate out the I and Q channels
+			float newVal;  // Just instantiate on stack once if we need it for signed/unsigned8
+
     		while (i<endpos) {
 
     			if (selectAction == SELECT_STAR) {
@@ -228,7 +243,29 @@ namespace gr {
     				else
     					bytes_read = fread(&buffer, 1, bytesremaining, pInputFile);
 
-        			fwrite(buffer,1,bytes_read,pOutputFile);
+    				totalbytesread = totalbytesread + bytes_read;
+
+    				if ((dataType != DATATYPE_SIGNED8) && (dataType != DATATYPE_UNSIGNED8)) {
+            			fwrite(buffer,1,bytes_read,pOutputFile);
+    				}
+    				else {
+    					// have to do a quick conversion first.
+    					// Calculations mirrored from csdr library for signed/unsigned -> float
+
+    					// Note, this will DEFINITELY take longer to process for conversion
+    					// rather than just read->write.
+    					for (long j=0;j<bytes_read;j++) {
+    						if (dataType == DATATYPE_UNSIGNED8) {
+    							// unsigned8 / rtl_sdr
+    							newVal = ((float)buffer[j])/((float)UCHAR_MAX/2.0)-1.0;
+    						}
+    						else {
+    							// signed8 / hackrf
+    							newVal = ((float)((signed char)buffer[j]))/(float)SCHAR_MAX;
+    						}
+    						fwrite((void *)&newVal,1,4,pOutputFile);
+    					}
+    				}
 
     				i = i + bytes_read;
     			}
@@ -285,7 +322,7 @@ namespace gr {
 
 		std::regex rgxselect("SELECT ?(\\*|I|Q|WATERFALL|FREQUENCY|CONSTELLATION|TIMELENGTH)",std::regex_constants::icase);
 		std::regex rgxfile(" FROM '?(.*?)'",std::regex_constants::icase);
-		std::regex rgxdatatype(" ASDATATYPE ?(COMPLEX|FLOAT|INT|SHORT|BYTE)",std::regex_constants::icase);
+		std::regex rgxdatatype(" ASDATATYPE ?(COMPLEX|FLOAT|INT|SHORT|BYTE|HACKRF|RTLSDR|SIGNED8|UNSIGNED8)",std::regex_constants::icase);
 		std::regex rgxsamplerate(" SAMPLERATE ?([0-9]{1,}\\.?[0-9]{0,}M?)",std::regex_constants::icase);
 		std::regex rgxstarttime(" STARTTIME ?([0-9]{1,}\\.?[0-9]{0,})",std::regex_constants::icase);
 		std::regex rgxendtime(" ENDTIME ?([0-9]{1,}\\.?[0-9]{0,})",std::regex_constants::icase);
@@ -350,6 +387,10 @@ namespace gr {
     						dataType = DATATYPE_SHORT;
 						} else if (dtype == "BYTE") {
 							dataType = DATATYPE_BYTE;
+						} else if ((dtype == "HACKRF") || (dtype == "SIGNED8")) {
+							dataType = DATATYPE_SIGNED8;
+						} else if ((dtype == "RTLSDR") || (dtype == "UNSIGNED8")) {
+							dataType = DATATYPE_UNSIGNED8;
 						}
 						else {
 							std::cout << "ERROR: Unknown data type: " << dtype << std::endl;
@@ -357,12 +398,12 @@ namespace gr {
 						}
 
     	    	        if ( ((selectAction == SELECT_I) || (selectAction == SELECT_Q)) && (dataType != DATATYPE_COMPLEX) ) {
-    	    	        	std::cout << "ERROR: SELECT I/Q only available for complex data types." << std::endl;
+    	    	        	std::cout << "ERROR: SELECT I/Q only available for complex data types.  If working with Signed/Unsigned8 data types, use SaveAS first to convert it to copmlex then extract I/Q." << std::endl;
     	    	        	exit(1);
     	    	        }
     			}
     			else {
-    				std::cout << "No data type specified.  Please include ASDATATYPE [COMPLEX | FLOAT | INT | SHORT | BYTE] in statement." << std::endl;
+    				std::cout << "No data type specified.  Please include ASDATATYPE [COMPLEX | FLOAT | INT | SHORT | BYTE | HACKRF (alias for SIGNED8) | RTLSDR (alias for UNSIGNED8) | SIGNED8 | UNSIGNED8 ] in statement." << std::endl;
     				exit(1);
     			}
 
@@ -406,7 +447,7 @@ namespace gr {
     			}
     			else {
     				if (selectAction != SELECT_TIMELENGTH) {
-        				std::cout << "WARNING: No end time specified.  Assuming end of file." << std::endl;
+        				std::cout << "INFO: No end time specified.  Assuming end of file." << std::endl;
     				}
     			}
 
@@ -459,6 +500,8 @@ namespace gr {
     	break;
 
     	case DATATYPE_BYTE:
+    	case DATATYPE_SIGNED8:
+    	case DATATYPE_UNSIGNED8:
     		retVal = 1;
     	break;
     	}
@@ -526,7 +569,9 @@ namespace gr {
 
 			if (selectAction == SELECT_STAR) {
 				// read in bigger blocks
-		    	gr_complex *out = (gr_complex *) output_items[0];
+		    	// gr_complex *out = (gr_complex *) output_items[0];
+				// Don't know the data type so go generic.
+		    	void *out = (void *) output_items[0];
 
 				if (bytesremaining >= bytesrequested)
 					bytes_read = fread(&buffer, 1, bytesrequested, pInputFile);
@@ -537,7 +582,31 @@ namespace gr {
 
 				returnedItems = (int)(bytes_read / datatypesize);
 
-				memcpy((void *)out,(const void *)buffer,bytes_read);
+				if ((dataType != DATATYPE_SIGNED8) && (dataType != DATATYPE_UNSIGNED8)) {
+					memcpy((void *)out,(const void *)buffer,bytes_read);
+				}
+				else {
+					// have to do a quick conversion first.
+					// Calculations mirrored from csdr library for signed/unsigned -> float
+
+					// Note, this will DEFINITELY take longer to process for conversion
+					// rather than just read->write.
+					float newVal;
+					// Even though it's complex out, we're rolling through the
+					// individual I and Q's as incremental floats.
+			    	float *floatout = (float *) output_items[0];
+					for (long j=0;j<bytes_read;j++) {
+						if (dataType == DATATYPE_UNSIGNED8) {
+							// unsigned8 / rtl_sdr
+							newVal = ((float)buffer[j])/((float)UCHAR_MAX/2.0)-1.0;
+						}
+						else {
+							// signed8 / hackrf
+							newVal = ((float)((signed char)buffer[j]))/(float)SCHAR_MAX;
+						}
+						floatout[j] = newVal;
+					}
+				}
 			}
 			else {
 				// For I or Q, we're reading complex but writing out float.

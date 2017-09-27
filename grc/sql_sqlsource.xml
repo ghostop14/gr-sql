@@ -13,36 +13,43 @@
 			<name>Complex</name>
 			<key>complex</key>
 			<opt>datatype:1</opt>
-			<opt>input:complex</opt>
 			<opt>output:complex</opt>
 		</option>
 		<option>
 			<name>Float</name>
 			<key>float</key>
 			<opt>datatype:2</opt>
-			<opt>input:float</opt>
 			<opt>output:float</opt>
 		</option>
 		<option>
 			<name>Int</name>
 			<key>int</key>
 			<opt>datatype:3</opt>
-			<opt>input:int</opt>
 			<opt>output:int</opt>
 		</option>
 		<option>
 			<name>Short</name>
 			<key>short</key>
 			<opt>datatype:4</opt>
-			<opt>input:short</opt>
 			<opt>output:short</opt>
 		</option>
 		<option>
 			<name>Byte</name>
 			<key>byte</key>
 			<opt>datatype:5</opt>
-			<opt>input:byte</opt>
 			<opt>output:byte</opt>
+		</option>
+		<option>
+			<name>Signed 8-bit (HackRF_transfer)</name>
+			<key>byte</key>
+			<opt>datatype:6</opt>
+			<opt>output:complex</opt>
+		</option>
+		<option>
+			<name>Unsigned 8-bit (rtl_sdr)</name>
+			<key>byte</key>
+			<opt>datatype:7</opt>
+			<opt>output:complex</opt>
 		</option>
 	</param>
 
