@@ -40,12 +40,12 @@ grsql "SELECT I FROM '/tmp/myrecording_593MHz_6.2MSPS.raw' ASDATATYPE complex SA
 
 Convert entire hackrf_transfer (signed 8-bit format) to gnuradio float IQ stream:
 
-grsql "SELECT * FROM '/tmp/myrecording.raw' ASDATATYPE HACKRF SAMPLERATE 6.2M STARTTIME 0.0 SAVEAS '/tmp/extracted.raw'"
+grsql "SELECT * FROM '/tmp/myrecording.raw' ASDATATYPE HACKRF SAMPLERATE 10M STARTTIME 0.0 SAVEAS '/tmp/extracted.raw'"
 
 
 Convert entire rtl_sdr (unsigned 8-bit format) to gnuradio float IQ stream:
 
-grsql "SELECT * FROM '/tmp/myrecording.raw' ASDATATYPE RTLSDR SAMPLERATE 6.2M STARTTIME 0.0 SAVEAS '/tmp/extracted.raw'"
+grsql "SELECT * FROM '/tmp/myrecording.raw' ASDATATYPE RTLSDR SAMPLERATE 2.048M STARTTIME 0.0 SAVEAS '/tmp/extracted.raw'"
 
 
 Note: for hackrf/rtlsdr in the gnuradio flowgraph block you can go straight from the signed/unsigned file to output complex to save the conversion step.  Also, because on hackrf/rtlsdr processing each sample needs to be processed, expect this to take some time to run through.
