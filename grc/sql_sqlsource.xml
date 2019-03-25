@@ -41,13 +41,13 @@
 		</option>
 		<option>
 			<name>Signed 8-bit (HackRF_transfer)</name>
-			<key>byte</key>
+			<key>byte6</key>
 			<opt>datatype:6</opt>
 			<opt>output:complex</opt>
 		</option>
 		<option>
 			<name>Unsigned 8-bit (rtl_sdr)</name>
-			<key>byte</key>
+			<key>byte7</key>
 			<opt>datatype:7</opt>
 			<opt>output:complex</opt>
 		</option>
