@@ -38,7 +38,7 @@ if(NOT sql_sources)
 endif(NOT sql_sources)
 
 add_library(gnuradio-sql SHARED ${sql_sources})
-target_link_libraries(gnuradio-sql ${Boost_LIBRARIES} ${GNURADIO_ALL_LIBRARIES} thrift)
+target_link_libraries(gnuradio-sql ${Boost_LIBRARIES} ${GNURADIO_ALL_LIBRARIES})
 set_target_properties(gnuradio-sql PROPERTIES DEFINE_SYMBOL "gnuradio_sql_EXPORTS")
 
 if(APPLE)
@@ -74,7 +74,6 @@ target_link_libraries(
   ${Boost_LIBRARIES}
   ${CPPUNIT_LIBRARIES}
   gnuradio-sql
-  thrift
 )
 
 GR_ADD_TEST(test_sql test-sql)
@@ -95,7 +94,6 @@ target_link_libraries(
   ${Boost_LIBRARIES}
   volk
   gnuradio-blocks
-  thrift
 )
 
 install(TARGETS grsql DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" RUNTIME)
