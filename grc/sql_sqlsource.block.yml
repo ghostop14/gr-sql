@@ -1,0 +1,39 @@
+id: sql_sqlsource
+label: sqlsource
+category: '[sql]'
+
+templates:
+  imports: import sql
+  make: sql.sqlsource(${sqlstring},${type.datatype})
+
+category: '[grsql]'
+
+parameters:
+-   id: type
+    label: Data Type
+    dtype: enum
+    options: [complex, float, int, short, byte, byte6, byte7]
+    option_labels: [Complex, Float, Int, Short, Byte, Signed 8-bit (HackRF_transfer),
+        Unsigned 8-bit (rtl_sdr)]
+    option_attributes:
+        datatype: ['1', '2', '3', '4', '5', '6', '7']
+        output: [complex, float, int, short, byte, complex, complex]
+    hide: part
+-   id: sqlstring
+    label: grsql string
+    dtype: string
+
+outputs:
+-   domain: stream
+    dtype: ${ type }
+
+templates:
+    imports: import sql
+    make: sql.sqlsource(${sqlstring},${type.datatype})
+
+documentation: |-
+    Provides a flowgraph interface to grsql.  The following is an example query against a saved file:
+
+    select * FROM 'recording_593MHz_6.2MSPS.raw' ASDATATYPE complex samplerate 6.2M starttime 0.0 endtime 10.0
+
+file_format: 1

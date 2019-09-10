@@ -44,7 +44,7 @@
 namespace gr {
   namespace sql {
 
-    class sqlsource_impl : public sqlsource
+    class SQL_API sqlsource_impl : public sqlsource
     {
      protected:
     	std::string sqlstring;
